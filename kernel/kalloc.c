@@ -21,12 +21,12 @@ struct run {
 struct {
     struct spinlock lock;
     struct run *freelist;
-} kmem[NPROC]; // 每个 CPU 都拥有自个儿的可用内存链表
+} kmem[NCPU]; // 每个 CPU 都拥有自个儿的可用内存链表
 
 void
 kinit() {      
 //  initlock(&kmem.lock, "kmem");
-    for (int i = 0; i < NPROC; i++)
+    for (int i = 0; i < NCPU; i++)
         initlock(&kmem[i].lock, "kmem"); // 初始化每个 CPU 的锁
     freerange(end, (void *) PHYSTOP);
 }
@@ -92,11 +92,11 @@ kalloc(void) {
     //  release(&kmem.lock);
 
     // 改为，优先从当前 CPU（curid）中获取一个空闲页，如果失败，从当前 CPU 右手边开始遍历，直到找到一页或者都没有可用内存
-    for (int i = 0, curid = cpuid(); i < NPROC && !r; i++, curid++) {
+    for (int i = 0, curid = cpuid(); i < NCPU && !r; i++, curid++) {
             
             
       
-        if (curid == NPROC)
+        if (curid == NCPU)
             curid = 0; // 环形遍历
         acquire(&kmem[curid].lock);
         r = kmem[curid].freelist;
