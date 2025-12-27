@@ -150,6 +150,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->systrace = 0;
 }
 
 // Create a user page table for a given process,
@@ -294,7 +295,7 @@ fork(void)
   pid = np->pid;
 
   np->state = RUNNABLE;
-
+  np->systrace = p->systrace;  // 继承父进程的系统调用跟踪掩码
   release(&np->lock);
 
   return pid;
